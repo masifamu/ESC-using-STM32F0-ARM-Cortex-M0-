@@ -139,10 +139,10 @@ int main(void)
 				BLDC_MotorCommutation(BLDC_HallSensorsGetPosition());
 			}
     	pwmWidth=BLDC_ADCToPWM(throtle);
-			HAL_GPIO_WritePin(GPIOB,GPIO_PIN_4,GPIO_PIN_RESET);
+			HAL_GPIO_WritePin(GPIOB,GPIO_PIN_4,GPIO_PIN_SET);
 			BLDC_SetPWM(pwmWidth);
     }else{
-			HAL_GPIO_WritePin(GPIOB,GPIO_PIN_4,GPIO_PIN_SET);
+			HAL_GPIO_WritePin(GPIOB,GPIO_PIN_4,GPIO_PIN_RESET);
 			if (BLDC_MotorGetSpin() != BLDC_STOP) {
 				//meaning motor is still running
 				if (throtle < BLDC_ADC_STOP) {

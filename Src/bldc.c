@@ -162,17 +162,17 @@ void BLDC_MotorCommutation(uint16_t hallpos)
 	}
 
 	// Disable if need
-	if (!BLDC_STATE[UH]) TIM1CH1(0);
+	if (!BLDC_STATE[UH]) TIM1CH3(0);
 	if (!BLDC_STATE[UL]) HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_SET);
 	if (!BLDC_STATE[VH]) TIM1CH2(0);
 	if (!BLDC_STATE[VL]) HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, GPIO_PIN_SET);
-	if (!BLDC_STATE[WH]) TIM1CH3(0);
+	if (!BLDC_STATE[WH]) TIM1CH1(0);
 	if (!BLDC_STATE[WL]) HAL_GPIO_WritePin(GPIOA, GPIO_PIN_7, GPIO_PIN_SET);
 
 	// Enable if need. If previous state is Enabled then not enable again. Else output do flip-flop.
 	if (BLDC_STATE[UH] & !BLDC_STATE[UL] & !BLDC_STATE_PREV[UH]) {
 		//TIM1CH1(PWMWIDTH); 
-		toUpdate=CH1;
+		toUpdate=CH3;
 	}
 	if (BLDC_STATE[UL] & !BLDC_STATE[UH] & !BLDC_STATE_PREV[UL]) {
 		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_RESET);
@@ -186,7 +186,7 @@ void BLDC_MotorCommutation(uint16_t hallpos)
 	}
 	if (BLDC_STATE[WH] & !BLDC_STATE[WL] & !BLDC_STATE_PREV[WH]) {
 		//TIM1CH3(PWMWIDTH); 
-		toUpdate=CH3;
+		toUpdate=CH1;
 	}
 	if (BLDC_STATE[WL] & !BLDC_STATE[WH] & !BLDC_STATE_PREV[WL]) {
 		HAL_GPIO_WritePin(GPIOA, GPIO_PIN_7, GPIO_PIN_RESET);
