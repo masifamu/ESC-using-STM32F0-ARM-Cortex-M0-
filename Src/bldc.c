@@ -6,7 +6,6 @@
 
 #include "string.h"
 #include "stdio.h"
-
 #include "bldc.h"
 
 #define TIM1CH1(x) TIM1->CCR1=x
@@ -18,7 +17,7 @@
 #define CH3 3
 
 #ifdef UART_HALL_DEBUG
-char printDataString1[50] = "buffer here\r\n";//{'\0',};
+char printDataString1[50] = "buffer here\r\n";
 #endif
 
 uint8_t BLDC_MotorSpin = 0,toUpdate=0;
@@ -71,19 +70,14 @@ static const uint8_t BLDC_BRIDGE_STATE_BACKWARD[8][6] =   // Motor steps
 };
 
 void BLDC_Init(void) {
-	//selectOCMChannel(TIM_CHANNEL_1);
-	//selectOCMChannel(TIM_CHANNEL_2);
-	//selectOCMChannel(TIM_CHANNEL_3);
 	BLDC_MotorStart();
 }
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_pin) {
-  //interrupt on pins are being reset from the EXTI interrupt handler   
-  // Commutation
+  //interrupt on pins are being reset from the EXTI interrupt handler in stm32f0xx_it.c  
 	HAL_GPIO_TogglePin(GPIOB,GPIO_PIN_3);
 	BLDC_MotorCommutation(BLDC_HallSensorsGetPosition());
 }
-
 
 uint8_t BLDC_HallSensorsGetPosition(void) {
 	uint8_t temp=(uint8_t)((GPIOB->IDR) & (GPIO_PIN_5|GPIO_PIN_6|GPIO_PIN_7))>>5;
@@ -117,11 +111,8 @@ void BLDC_MotorStart(void)
 		HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2); 
 		HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_3); 
 
-		//TIM_CCxNCmd(TIM1, TIM_Channel_1, TIM_CCxN_Disable);
 		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_13, GPIO_PIN_SET);
-		//TIM_CCxNCmd(TIM1, TIM_Channel_2, TIM_CCxN_Disable);
 		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_14, GPIO_PIN_SET);
-		//TIM_CCxNCmd(TIM1, TIM_Channel_3, TIM_CCxN_Disable);
 		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_15, GPIO_PIN_SET);
 
 		BLDC_MotorSpin = 0;
@@ -129,9 +120,6 @@ void BLDC_MotorStart(void)
 			memset(BLDC_STATE_PREV, 0, sizeof(BLDC_STATE_PREV));
 		#endif
 }
-//void BLDC_TurnLowerSwitchesOff(void){
-
-//}
 
 #ifdef BLDC_PWMTOPBOTTOMKEYS
 void BLDC_MotorCommutation(uint16_t hallpos)
@@ -174,18 +162,15 @@ void BLDC_MotorCommutation(uint16_t hallpos)
 	}
 
 	// Disable if need
-	if (!BLDC_STATE[UH]) /*HAL_TIM_PWM_Stop(&htim1, TIM_CHANNEL_1);*/TIM1CH1(0);
+	if (!BLDC_STATE[UH]) TIM1CH1(0);
 	if (!BLDC_STATE[UL]) HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_SET);
-	if (!BLDC_STATE[VH]) /*HAL_TIM_PWM_Stop(&htim1, TIM_CHANNEL_2);*/TIM1CH2(0);
+	if (!BLDC_STATE[VH]) TIM1CH2(0);
 	if (!BLDC_STATE[VL]) HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, GPIO_PIN_SET);
-	if (!BLDC_STATE[WH]) /*HAL_TIM_PWM_Stop(&htim1, TIM_CHANNEL_3);*/TIM1CH3(0);
+	if (!BLDC_STATE[WH]) TIM1CH3(0);
 	if (!BLDC_STATE[WL]) HAL_GPIO_WritePin(GPIOA, GPIO_PIN_7, GPIO_PIN_SET);
 
 	// Enable if need. If previous state is Enabled then not enable again. Else output do flip-flop.
 	if (BLDC_STATE[UH] & !BLDC_STATE[UL] & !BLDC_STATE_PREV[UH]) {
-		//selectOCMChannel(TIM_CHANNEL_1);
-		//TIM_CCxChannelCmd(TIM1,TIM_CHANNEL_1,TIM_CCx_ENABLE);
-		//HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
 		//TIM1CH1(PWMWIDTH); 
 		toUpdate=CH1;
 	}
@@ -193,9 +178,6 @@ void BLDC_MotorCommutation(uint16_t hallpos)
 		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_RESET);
 	}
 	if (BLDC_STATE[VH] & !BLDC_STATE[VL] & !BLDC_STATE_PREV[VH]) {
-		//selectOCMChannel(TIM_CHANNEL_2);
-		//TIM_CCxChannelCmd(TIM1,TIM_CHANNEL_2,TIM_CCx_ENABLE);
-		//HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2);
 		//TIM1CH2(PWMWIDTH); 
 		toUpdate=CH2;
 	}
@@ -203,9 +185,6 @@ void BLDC_MotorCommutation(uint16_t hallpos)
 		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, GPIO_PIN_RESET);
 	}
 	if (BLDC_STATE[WH] & !BLDC_STATE[WL] & !BLDC_STATE_PREV[WH]) {
-		//selectOCMChannel(TIM_CHANNEL_3);
-		//TIM_CCxChannelCmd(TIM1,TIM_CHANNEL_3,TIM_CCx_ENABLE);
-		//HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_3);
 		//TIM1CH3(PWMWIDTH); 
 		toUpdate=CH3;
 	}
@@ -363,12 +342,4 @@ void BLDC_SetPWM(uint16_t PWM)
 	}else if(toUpdate == CH3){
 		TIM1CH3(PWMWIDTH);
 	}
-}
-
-void selectOCMChannel(uint32_t channel){
-	TIM_OC_InitTypeDef sConfigOC;
-	
-	sConfigOC.OCMode = TIM_OCMODE_PWM1;
-  sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
-  HAL_TIM_PWM_ConfigChannel(&htim1, &sConfigOC, channel);
 }

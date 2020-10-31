@@ -50,5 +50,4 @@ uint16_t BLDC_ADCToPWM(uint16_t ADC_VALUE);
 void BLDC_SetPWM(uint16_t PWM);
 void usart_init(void);
 void USARTSend(char *);
-void selectOCMChannel(uint32_t ch);
 #endif
