@@ -171,21 +171,21 @@ void BLDC_MotorCommutation(uint16_t hallpos)
 
 	// Enable if need. If previous state is Enabled then not enable again. Else output do flip-flop.
 	if (BLDC_STATE[UH] & !BLDC_STATE[UL] & !BLDC_STATE_PREV[UH]) {
-		//TIM1CH1(PWMWIDTH); 
+		TIM1CH3(PWMWIDTH); 
 		toUpdate=CH3;
 	}
 	if (BLDC_STATE[UL] & !BLDC_STATE[UH] & !BLDC_STATE_PREV[UL]) {
 		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_RESET);
 	}
 	if (BLDC_STATE[VH] & !BLDC_STATE[VL] & !BLDC_STATE_PREV[VH]) {
-		//TIM1CH2(PWMWIDTH); 
+		TIM1CH2(PWMWIDTH); 
 		toUpdate=CH2;
 	}
 	if (BLDC_STATE[VL] & !BLDC_STATE[VH] & !BLDC_STATE_PREV[VL]) {
 		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, GPIO_PIN_RESET);
 	}
 	if (BLDC_STATE[WH] & !BLDC_STATE[WL] & !BLDC_STATE_PREV[WH]) {
-		//TIM1CH3(PWMWIDTH); 
+		TIM1CH1(PWMWIDTH); 
 		toUpdate=CH1;
 	}
 	if (BLDC_STATE[WL] & !BLDC_STATE[WH] & !BLDC_STATE_PREV[WL]) {
