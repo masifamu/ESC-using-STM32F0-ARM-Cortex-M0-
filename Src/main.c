@@ -109,7 +109,7 @@ int main(void)
 	
 	BLDC_Init();
   /* USER CODE END 2 */
-
+	HAL_GPIO_WritePin(GPIOA,GPIO_PIN_12,GPIO_PIN_SET);
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
@@ -127,7 +127,7 @@ int main(void)
     if (throtle > BLDC_ADC_START) {
 			if (BLDC_MotorGetSpin() == BLDC_STOP) {
 				// Check Reverse pin
-				if (HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_0) != 0) {
+				if (HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_15) != 0) {
 					// Forward
 					BLDC_MotorSetSpin(BLDC_CW);
 				}else{
