@@ -316,13 +316,13 @@ uint16_t BLDC_ADCToPWM(uint16_t ADC_VALUE) {
 	}
 
 	if (ADC_VALUE > BLDC_ADC_MAX) {
-		return BLDC_CHOPPER_PERIOD+1;
+		return (BLDC_CHOPPER_PERIOD * BLDC_SPEEDING_FACTOR)+1;
 	}
 
-	tmp = (uint32_t)(ADC_VALUE-BLDC_ADC_STOP) * (uint32_t)BLDC_CHOPPER_PERIOD / (uint32_t)(BLDC_ADC_MAX - BLDC_ADC_START);
+	tmp = (uint32_t)(ADC_VALUE-BLDC_ADC_STOP) * (uint32_t)(BLDC_CHOPPER_PERIOD * BLDC_SPEEDING_FACTOR) / (uint32_t)(BLDC_ADC_MAX - BLDC_ADC_START);
 
 	//to maintain the lower PWM width
-	return (uint16_t) tmp-8;
+	return (uint16_t) tmp-3;
 
 }
 

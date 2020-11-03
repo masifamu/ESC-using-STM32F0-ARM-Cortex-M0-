@@ -4,6 +4,7 @@
 #include "stdint.h"
 // PWM Frequency = 72000000/BLDC_CHOPPER_PERIOD
 #define BLDC_CHOPPER_PERIOD 480
+#define BLDC_SPEEDING_FACTOR 0.5
 // Dead time = BLDC_NOL/72000000  (on 72MHz: 7 is 98ns)
 // (on 72MHz: 72 is 1000ns)
 //#define BLDC_NOL 72
@@ -16,6 +17,8 @@
 
 //#define UART_COMM_DEBUG
 //#define UART_HALL_DEBUG
+
+
 /* when working with variable resistor
 #define BLDC_ADC_START 15
 #define BLDC_ADC_STOP 5
