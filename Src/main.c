@@ -142,11 +142,11 @@ int main(void)
 			HAL_GPIO_WritePin(GPIOB,GPIO_PIN_4,GPIO_PIN_SET);
 			BLDC_SetPWM(pwmWidth);
     }else{
-			HAL_GPIO_WritePin(GPIOB,GPIO_PIN_4,GPIO_PIN_RESET);
+			HAL_GPIO_TogglePin(GPIOB,GPIO_PIN_4);
 			if (BLDC_MotorGetSpin() != BLDC_STOP) {
 				//meaning motor is still running
 				if (throtle < BLDC_ADC_STOP) {
-				BLDC_MotorStop();
+					BLDC_MotorStop();
 				}
 			}
     }

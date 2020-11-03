@@ -81,12 +81,6 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_pin) {
 
 uint8_t BLDC_HallSensorsGetPosition(void) {
 	uint8_t temp=(uint8_t)((GPIOB->IDR) & (GPIO_PIN_5|GPIO_PIN_6|GPIO_PIN_7))>>5;
-	
-	#ifdef UART_HALL_DEBUG
-  snprintf(printDataString1,50, "hall pattern = %d\n\r", (uint16_t)temp);
-  HAL_UART_Transmit(&huart1, (uint8_t*)printDataString1, strlen(printDataString1), HAL_MAX_DELAY);
-	#endif
-	
 	return temp;
 }
 
@@ -100,7 +94,7 @@ void BLDC_MotorSetSpin(uint8_t spin) {
 
 void BLDC_MotorStop(void)
 {
-	BLDC_SetPWM(16);
+	BLDC_SetPWM(1);
 }
 
 void BLDC_MotorStart(void)
@@ -328,7 +322,7 @@ uint16_t BLDC_ADCToPWM(uint16_t ADC_VALUE) {
 	tmp = (uint32_t)(ADC_VALUE-BLDC_ADC_STOP) * (uint32_t)BLDC_CHOPPER_PERIOD / (uint32_t)(BLDC_ADC_MAX - BLDC_ADC_START);
 
 	//to maintain the lower PWM width
-	return (uint16_t) tmp;
+	return (uint16_t) tmp-8;
 
 }
 
@@ -342,4 +336,8 @@ void BLDC_SetPWM(uint16_t PWM)
 	}else if(toUpdate == CH3){
 		TIM1CH3(PWMWIDTH);
 	}
+	#ifdef UART_HALL_DEBUG
+  snprintf(printDataString1,50, "PWMWIDTH = %d\n\r", (uint16_t)PWMWIDTH);
+  HAL_UART_Transmit(&huart1, (uint8_t*)printDataString1, strlen(printDataString1), HAL_MAX_DELAY);
+	#endif
 }

@@ -14,7 +14,7 @@
 //#define BLDC_PWMTOPBOTTOMKEYS
 //#define BLDC_PWMCOMPLEMENTARYMODE
 
-#define UART_COMM_DEBUG
+//#define UART_COMM_DEBUG
 //#define UART_HALL_DEBUG
 /* when working with variable resistor
 #define BLDC_ADC_START 15
