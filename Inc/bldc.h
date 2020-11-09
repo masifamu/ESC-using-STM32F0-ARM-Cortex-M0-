@@ -15,7 +15,7 @@
 //#define BLDC_PWMTOPBOTTOMKEYS
 //#define BLDC_PWMCOMPLEMENTARYMODE
 
-//#define UART_COMM_DEBUG
+#define UART_COMM_DEBUG
 //#define UART_HALL_DEBUG
 
 
@@ -32,6 +32,13 @@
 #define BLDC_STOP	0
 #define BLDC_CW		1
 #define BLDC_CCW	2
+
+//motor parameter macros
+#define minBattThreVolt           36
+#define maxBattThreVolt           56
+#define waitAftLowVoltDet         5000//in msec
+#define wheelDia                  0.65
+#define HSCutsInOneCycle          266
 
 #define UH	0
 #define UL	1

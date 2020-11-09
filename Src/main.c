@@ -56,6 +56,10 @@ char printDataString[50] = "buffer here\r\n";//{'\0',};
 #endif
 
 uint16_t ADCBuffer[6]={0,};
+extern uint32_t time;
+#ifdef UART_COMM_DEBUG
+extern uint16_t noOfHSCuts;
+#endif
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -78,6 +82,12 @@ int main(void)
   /* USER CODE BEGIN 1 */
 	uint16_t pwmWidth=0;
 	uint16_t throtle=0;
+	uint16_t battVoltage=0;
+	#ifdef UART_COMM_DEBUG
+	uint8_t hour=0,minute=0,second=0,rpm;
+	uint32_t msStampS=0;
+	#endif
+	uint32_t msStampV=0;
   /* USER CODE END 1 */
   
 
@@ -110,6 +120,11 @@ int main(void)
 	BLDC_Init();
   /* USER CODE END 2 */
 	HAL_GPIO_WritePin(GPIOA,GPIO_PIN_12,GPIO_PIN_SET);
+	
+	#ifdef UART_COMM_DEBUG
+	msStampS=time;
+	#endif
+	msStampV=time;
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
@@ -119,11 +134,39 @@ int main(void)
     /* USER CODE BEGIN 3 */
 		throtle=ADCBuffer[0];
 		
+		//measuring battery voltage
+		//anding is to avoid the error due to two lower bits. 3.3*(15.6+1)*1000=54780, shifting right by 12bit = div by 4096
+		battVoltage = (uint16_t)(((uint32_t)ADCBuffer[1] * 54780)>>12)/1000 ;
+		if(battVoltage < minBattThreVolt | battVoltage > maxBattThreVolt){
+			if(time-msStampV >= waitAftLowVoltDet){//if voltage is out of range for 5sec then turn everything off and blink PB3 and PB4 together at 500ms.
+				BLDC_MotorStop();
+				while(1){
+					HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_3 | GPIO_PIN_4);
+					HAL_Delay(500);
+				}
+			}
+			msStampV=time;
+		}
+		
 		#ifdef UART_COMM_DEBUG
-		snprintf(printDataString,50, "pwm = %d, throtle = %d\n\r", (uint16_t)pwmWidth,throtle);
+		//measuring ON-time
+		hour = (uint8_t)(((time/1000)/60)/60);
+		minute = (uint8_t)(((time/1000)/60)%60);
+		second = (uint8_t)((time/1000)%60);
+		
+		//meauring RPM
+		if(time-msStampS >=1000){
+			rpm=(uint16_t)((noOfHSCuts*60)/HSCutsInOneCycle);
+			noOfHSCuts=0;
+			msStampS=time;
+		}
+		
+		snprintf(printDataString,50, "pwm = %d, thr = %d V = %d %dH:%dM:%dS rpm=%d\n\r", pwmWidth,throtle, battVoltage,hour,minute,second,rpm);
 		HAL_UART_Transmit(&huart1, (uint8_t*)printDataString, strlen(printDataString), HAL_MAX_DELAY);
 		#endif
 		
+		
+		//motor control block
     if (throtle > BLDC_ADC_START) {
 			if (BLDC_MotorGetSpin() == BLDC_STOP) {
 				// Check Reverse pin
@@ -134,19 +177,19 @@ int main(void)
 					// Backward
 					BLDC_MotorSetSpin(BLDC_CCW);
 				}
-				//pwmWidth=BLDC_ADCToPWM(throtle);
-				//BLDC_SetPWM(pwmWidth);
 				BLDC_MotorCommutation(BLDC_HallSensorsGetPosition());
 			}
     	pwmWidth=BLDC_ADCToPWM(throtle);
 			HAL_GPIO_WritePin(GPIOB,GPIO_PIN_4,GPIO_PIN_SET);
 			BLDC_SetPWM(pwmWidth);
     }else{
-			HAL_GPIO_WritePin(GPIOB,GPIO_PIN_4, GPIO_PIN_RESET);
+			//HAL_GPIO_WritePin(GPIOB,GPIO_PIN_4, GPIO_PIN_RESET);
 			if (BLDC_MotorGetSpin() != BLDC_STOP) {
 				//meaning motor is still running
 				if (throtle < BLDC_ADC_STOP) {
 					BLDC_MotorStop();
+					HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_4);
+					HAL_Delay(250);//this delay may cause timing accuracy out side of motor control block.
 				}
 			}
     }

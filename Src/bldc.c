@@ -23,6 +23,9 @@ char printDataString1[50] = "buffer here\r\n";
 uint8_t BLDC_MotorSpin = 0,toUpdate=0;
 uint8_t BLDC_STATE[6] = {0,0,0,0,0,0};
 uint16_t PWMWIDTH=0;
+#ifdef UART_COMM_DEBUG
+uint16_t noOfHSCuts=0;
+#endif
 
 #ifndef BLDC_PWMCOMPLEMENTARYMODE
 uint8_t BLDC_STATE_PREV[6] = {0,0,0,0,0,0};
@@ -77,6 +80,10 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_pin) {
   //interrupt on pins are being reset from the EXTI interrupt handler in stm32f0xx_it.c  
 	HAL_GPIO_TogglePin(GPIOB,GPIO_PIN_3);
 	BLDC_MotorCommutation(BLDC_HallSensorsGetPosition());
+	
+	#ifdef UART_COMM_DEBUG
+	noOfHSCuts++;
+	#endif
 }
 
 uint8_t BLDC_HallSensorsGetPosition(void) {
