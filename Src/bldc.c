@@ -7,6 +7,8 @@
 #include "string.h"
 #include "stdio.h"
 #include "bldc.h"
+#include "math.h"
+
 
 #define TIM1CH1(x) TIM1->CCR1=x
 #define TIM1CH2(x) TIM1->CCR2=x
@@ -71,6 +73,51 @@ static const uint8_t BLDC_BRIDGE_STATE_BACKWARD[8][6] =   // Motor steps
    { 0,1	,	0,0	,	1,0 },
    { 0,0	,	0,0	,	0,0 },  //  //111
 };
+
+uint16_t getCurrentDrawn(uint16_t adcBuffer2){
+	//15right shift = div by 4096 and then by 8(mohm resistor for current sensing)
+	return((uint16_t)(((uint32_t)adcBuffer2*3300000)>>15));
+}
+#ifdef UART_COMM_DEBUG
+uint16_t getHeatSinkTemp(uint16_t adcBuffer3){
+	static uint32_t sum=0;
+	static uint8_t count=0;
+	static uint16_t temperature=0;
+	count++;
+	if(count < 200){
+		sum += adcBuffer3;
+	}else{
+		count=0;
+		sum /=200;
+		float HSVoltK=0, Vth=0.0,Rth=0.0;
+		Vth = 3300 - ((sum*3300)>>12);
+		Rth = (R1 * Vth)/(3300 - Vth);
+		Vth = log(Rth/rTherm25C);//using Vth agian to save memory
+		HSVoltK = 1.0/(coeffA+coeffB*Vth+coeffC*pow(Vth,2)+coeffD*pow(Vth,3));
+		
+		sum=0;
+		temperature = ((uint16_t)(HSVoltK-273.15));
+	}
+	return temperature;
+}
+
+uint16_t getProcVoltage(uint16_t adcBuffer5){
+	// 1530 is corresponding to the 1.2326v
+	return ((uint16_t)((uint32_t)(3300*1530)/adcBuffer5));
+}
+uint16_t getProcTemp(uint16_t adcBuffer4){
+	//sensitivity=4.3mV/C=5steps, 1750 is default value at 25C, 25 is addedd to get the actual value
+	return ((uint16_t)((1750-adcBuffer4)/5+25));
+}
+#endif
+
+void toggleGreenLED(void){
+	static uint16_t counter=0;
+	if(++counter > 100){
+		counter=0;
+		HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_4);
+	}
+}
 
 void BLDC_Init(void) {
 	BLDC_MotorStart();

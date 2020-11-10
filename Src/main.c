@@ -52,7 +52,7 @@
 
 /* USER CODE BEGIN PV */
 #ifdef UART_COMM_DEBUG
-char printDataString[50] = "buffer here\r\n";//{'\0',};
+char printDataString[100] = "buffer here\r\n";//{'\0',};
 #endif
 
 uint16_t ADCBuffer[6]={0,};
@@ -82,9 +82,10 @@ int main(void)
   /* USER CODE BEGIN 1 */
 	uint16_t pwmWidth=0;
 	uint16_t throtle=0;
-	uint16_t battVoltage=0;
+	uint16_t battVoltage=0,currentDrawn=0;
 	#ifdef UART_COMM_DEBUG
 	uint8_t hour=0,minute=0,second=0,rpm;
+	uint16_t procTemp=0,heatSinkTemp=0,procVolt=0;
 	uint32_t msStampS=0;
 	#endif
 	uint32_t msStampV=0;
@@ -148,7 +149,19 @@ int main(void)
 			msStampV=time;
 		}
 		
+		//measuring current
+		currentDrawn = getCurrentDrawn(ADCBuffer[2]);
+		
 		#ifdef UART_COMM_DEBUG
+		//measuring heatSink temperature
+		heatSinkTemp = getHeatSinkTemp(ADCBuffer[3]);
+		
+		//measuring processor temperature 
+		procTemp = getProcTemp(ADCBuffer[4]);
+
+		//measuring internal processor voltage
+		procVolt = getProcVoltage(ADCBuffer[5]);
+		
 		//measuring ON-time
 		hour = (uint8_t)(((time/1000)/60)/60);
 		minute = (uint8_t)(((time/1000)/60)%60);
@@ -161,7 +174,7 @@ int main(void)
 			msStampS=time;
 		}
 		
-		snprintf(printDataString,50, "pwm = %d, thr = %d V = %d %dH:%dM:%dS rpm=%d\n\r", pwmWidth,throtle, battVoltage,hour,minute,second,rpm);
+		snprintf(printDataString,100, "PWM=%3d TH=%4d V=%2d %1d:%2d:%2d RPM=%3d C=%5d PT=%2d PV=%4d HST=%2d\n\r", pwmWidth,throtle, battVoltage,hour,minute,second,rpm,currentDrawn,procTemp,procVolt,heatSinkTemp);
 		HAL_UART_Transmit(&huart1, (uint8_t*)printDataString, strlen(printDataString), HAL_MAX_DELAY);
 		#endif
 		
@@ -188,8 +201,8 @@ int main(void)
 				//meaning motor is still running
 				if (throtle < BLDC_ADC_STOP) {
 					BLDC_MotorStop();
-					HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_4);
-					HAL_Delay(250);//this delay may cause timing accuracy out side of motor control block.
+					toggleGreenLED();
+					//HAL_Delay(250);//this delay may cause timing accuracy out side of motor control block.
 				}
 			}
     }

@@ -15,7 +15,7 @@
 //#define BLDC_PWMTOPBOTTOMKEYS
 //#define BLDC_PWMCOMPLEMENTARYMODE
 
-#define UART_COMM_DEBUG
+//#define UART_COMM_DEBUG
 //#define UART_HALL_DEBUG
 
 
@@ -40,6 +40,15 @@
 #define wheelDia                  0.65
 #define HSCutsInOneCycle          266
 
+//thermistor parameter
+#define R1										100710//100k
+#define coeffA                0.003354016
+#define coeffB								0.0002569850
+#define coeffC								0.000002620131
+#define coeffD								0.00000006383091
+#define rTherm25C							100000
+
+
 #define UH	0
 #define UL	1
 #define VH	2
@@ -60,4 +69,9 @@ uint16_t BLDC_ADCToPWM(uint16_t ADC_VALUE);
 void BLDC_SetPWM(uint16_t PWM);
 void usart_init(void);
 void USARTSend(char *);
+uint16_t getHeatSinkTemp(uint16_t adcBuffer3);
+uint16_t getProcVoltage(uint16_t adcBuffer5);
+uint16_t getProcTemp(uint16_t adcBuffer4);
+uint16_t getCurrentDrawn(uint16_t adcBuffer2);
+void toggleGreenLED(void);
 #endif
