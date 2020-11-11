@@ -59,6 +59,7 @@ uint16_t ADCBuffer[6]={0,};
 extern uint32_t time;
 #ifdef UART_COMM_DEBUG
 extern uint16_t noOfHSCuts;
+enum States elapsed1Sec;
 #endif
 /* USER CODE END PV */
 
@@ -134,7 +135,7 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
 		throtle=ADCBuffer[0];
-		
+
 		//measuring battery voltage
 		//anding is to avoid the error due to two lower bits. 3.3*(15.6+1)*1000=54780, shifting right by 12bit = div by 4096
 		battVoltage = (uint16_t)(((uint32_t)ADCBuffer[1] * 54780)>>12)/1000 ;
@@ -168,10 +169,12 @@ int main(void)
 		second = (uint8_t)((time/1000)%60);
 		
 		//meauring RPM
-		if(time-msStampS >=1000){
+		//if(time-msStampS >=1000){
+		if(elapsed1Sec == YES){
 			rpm=(uint16_t)((noOfHSCuts*60)/HSCutsInOneCycle);
 			noOfHSCuts=0;
 			msStampS=time;
+			elapsed1Sec=TOKEN_USED;
 		}
 		
 		snprintf(printDataString,100, "PWM=%3d TH=%4d V=%2d %1d:%2d:%2d RPM=%3d C=%5d PT=%2d PV=%4d HST=%2d\n\r", pwmWidth,throtle, battVoltage,hour,minute,second,rpm,currentDrawn,procTemp,procVolt,heatSinkTemp);

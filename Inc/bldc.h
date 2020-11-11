@@ -15,7 +15,7 @@
 //#define BLDC_PWMTOPBOTTOMKEYS
 //#define BLDC_PWMCOMPLEMENTARYMODE
 
-//#define UART_COMM_DEBUG
+#define UART_COMM_DEBUG
 //#define UART_HALL_DEBUG
 
 
@@ -55,6 +55,8 @@
 #define VL	3
 #define WH	4
 #define WL	5
+
+enum States {NO,YES,TOKEN_USED=-1};
 
 void BLDC_Init(void);
 void BLDC_HallSensorsInit(void);

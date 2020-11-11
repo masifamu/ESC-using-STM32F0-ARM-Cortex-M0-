@@ -25,6 +25,7 @@ char printDataString1[50] = "buffer here\r\n";
 uint8_t BLDC_MotorSpin = 0,toUpdate=0;
 uint8_t BLDC_STATE[6] = {0,0,0,0,0,0};
 uint16_t PWMWIDTH=0;
+
 #ifdef UART_COMM_DEBUG
 uint16_t noOfHSCuts=0;
 #endif
@@ -75,9 +76,21 @@ static const uint8_t BLDC_BRIDGE_STATE_BACKWARD[8][6] =   // Motor steps
 };
 
 uint16_t getCurrentDrawn(uint16_t adcBuffer2){
+	static uint32_t avg2=0;
+	static uint8_t count2=0;
+	static uint16_t current=0;
+	if(++count2 <= 128){
+		avg2 += adcBuffer2;
+	}else{
+		count2=0;
+		//avg2 /=100;
+		avg2 = avg2>>7;//7 right shift = div by 128
+		current = (uint16_t)((avg2*3300000)>>15);//using avg2 agian to save memory.
+	}
 	//15right shift = div by 4096 and then by 8(mohm resistor for current sensing)
-	return((uint16_t)(((uint32_t)adcBuffer2*3300000)>>15));
+	return current;
 }
+
 #ifdef UART_COMM_DEBUG
 uint16_t getHeatSinkTemp(uint16_t adcBuffer3){
 	static uint32_t sum=0;
