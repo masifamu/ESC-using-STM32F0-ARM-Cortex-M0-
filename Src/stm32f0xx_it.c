@@ -131,7 +131,6 @@ void SysTick_Handler(void)
   HAL_IncTick();
   /* USER CODE BEGIN SysTick_IRQn 1 */
 	time=HAL_GetTick();
-	if(time%1000 == 0) elapsed1Sec = YES;
   /* USER CODE END SysTick_IRQn 1 */
 }
 

@@ -56,8 +56,6 @@
 #define WH	4
 #define WL	5
 
-enum States {NO,YES,TOKEN_USED=-1};
-
 void BLDC_Init(void);
 void BLDC_HallSensorsInit(void);
 void BLDC_PWMTimerInit(void);

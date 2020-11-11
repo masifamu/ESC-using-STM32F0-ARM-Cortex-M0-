@@ -59,7 +59,6 @@ uint16_t ADCBuffer[6]={0,};
 extern uint32_t time;
 #ifdef UART_COMM_DEBUG
 extern uint16_t noOfHSCuts;
-enum States elapsed1Sec;
 #endif
 /* USER CODE END PV */
 
@@ -83,7 +82,7 @@ int main(void)
   /* USER CODE BEGIN 1 */
 	uint16_t pwmWidth=0;
 	uint16_t throtle=0;
-	uint16_t battVoltage=0,currentDrawn=0;
+	uint16_t battVoltage=0,currentDrawn=0,powerConsumed=0;
 	#ifdef UART_COMM_DEBUG
 	uint8_t hour=0,minute=0,second=0,rpm;
 	uint16_t procTemp=0,heatSinkTemp=0,procVolt=0;
@@ -169,15 +168,15 @@ int main(void)
 		second = (uint8_t)((time/1000)%60);
 		
 		//meauring RPM
-		//if(time-msStampS >=1000){
-		if(elapsed1Sec == YES){
+		if(time-msStampS >=1000){
 			rpm=(uint16_t)((noOfHSCuts*60)/HSCutsInOneCycle);
 			noOfHSCuts=0;
 			msStampS=time;
-			elapsed1Sec=TOKEN_USED;
+			//measuring power consumed
+			powerConsumed += (uint16_t)((battVoltage*currentDrawn)/3600);
 		}
 		
-		snprintf(printDataString,100, "PWM=%3d TH=%4d V=%2d %1d:%2d:%2d RPM=%3d C=%5d PT=%2d PV=%4d HST=%2d\n\r", pwmWidth,throtle, battVoltage,hour,minute,second,rpm,currentDrawn,procTemp,procVolt,heatSinkTemp);
+		snprintf(printDataString,100, "PWM=%3d TH=%4d V=%2d %1d:%2d:%2d RPM=%3d C=%5d PC=%5d PT=%2d PV=%4d HST=%2d\n\r", pwmWidth,throtle, battVoltage,hour,minute,second,rpm,currentDrawn,powerConsumed,procTemp,procVolt,heatSinkTemp);
 		HAL_UART_Transmit(&huart1, (uint8_t*)printDataString, strlen(printDataString), HAL_MAX_DELAY);
 		#endif
 		
