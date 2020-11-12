@@ -76,18 +76,25 @@ static const uint8_t BLDC_BRIDGE_STATE_BACKWARD[8][6] =   // Motor steps
 };
 
 uint16_t getCurrentDrawn(uint16_t adcBuffer2){
+	#ifdef DO_CURRENT_AVGING
 	static uint32_t avg2=0;
 	static uint8_t count2=0;
 	static uint16_t current=0;
-	if(++count2 <= 128){
+	if(++count2 <= 4){
 		avg2 += adcBuffer2;
 	}else{
 		count2=0;
-		//avg2 /=100;
-		avg2 = avg2>>7;//7 right shift = div by 128
-		current = (uint16_t)((avg2*3300000)>>15);//using avg2 agian to save memory.
+		avg2 = avg2>>2;//5 right shift = div by 32
+		current = (uint16_t)(((uint32_t)((float)avg2*((Rlow+Rup)/Rlow)*3300.0f))>>12);
+		current = (uint16_t)((float)(current - 2550)/sensitivity*1000);
+		avg2=0;
 	}
-	//15right shift = div by 4096 and then by 8(mohm resistor for current sensing)
+	#endif
+	#ifndef DO_CURRENT_AVGING
+	uint16_t current=0;
+	current = (uint16_t)(((uint32_t)((float)adcBuffer2*((Rlow+Rup)/Rlow)*3300.0f))>>12);
+	current = (uint16_t)((float)(current - 2550)/sensitivity*1000);
+	#endif
 	return current;
 }
 
@@ -96,8 +103,7 @@ uint16_t getHeatSinkTemp(uint16_t adcBuffer3){
 	static uint32_t sum=0;
 	static uint8_t count=0;
 	static uint16_t temperature=0;
-	count++;
-	if(count < 200){
+	if(++count <= 200){
 		sum += adcBuffer3;
 	}else{
 		count=0;
@@ -119,8 +125,19 @@ uint16_t getProcVoltage(uint16_t adcBuffer5){
 	return ((uint16_t)((uint32_t)(3300*1530)/adcBuffer5));
 }
 uint16_t getProcTemp(uint16_t adcBuffer4){
-	//sensitivity=4.3mV/C=5steps, 1750 is default value at 25C, 25 is addedd to get the actual value
-	return ((uint16_t)((1750-adcBuffer4)/5+25));
+	static uint32_t avg4=0;
+	static uint8_t count4=0;
+	static uint16_t pTemp=0;
+	if(++count4 <= 16){
+		avg4 += adcBuffer4;
+	}else{
+		count4 = 0;
+		avg4 = avg4 >> 4;
+		//sensitivity=4.3mV/C=5steps, 1770 is default value at 25C, 25 is addedd to get the actual value
+		pTemp = ((uint16_t)((1770-(uint16_t)avg4)/5+25));
+		avg4 = 0;
+	}
+	return pTemp;
 }
 #endif
 

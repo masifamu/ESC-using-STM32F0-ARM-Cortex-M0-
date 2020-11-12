@@ -42,11 +42,17 @@
 
 //thermistor parameter
 #define R1										100710//100k
-#define coeffA                0.003354016
-#define coeffB								0.0002569850
-#define coeffC								0.000002620131
-#define coeffD								0.00000006383091
+#define coeffA                0.003354016f
+#define coeffB								0.0002569850f
+#define coeffC								0.000002620131f
+#define coeffD								0.00000006383091f
 #define rTherm25C							100000
+
+//current sensor parameter
+#define Rlow										3.217f
+#define Rup											2.176f
+#define sensitivity							66			//66mv/A
+//#define DO_CURRENT_AVGING
 
 
 #define UH	0
