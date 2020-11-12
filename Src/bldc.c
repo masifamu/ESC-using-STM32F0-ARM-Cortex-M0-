@@ -33,21 +33,7 @@ uint16_t noOfHSCuts=0;
 #ifndef BLDC_PWMCOMPLEMENTARYMODE
 uint8_t BLDC_STATE_PREV[6] = {0,0,0,0,0,0};
 #endif
-/*
-// BLDC motor steps tables
-static const uint8_t BLDC_BRIDGE_STATE_FORWARD[8][6] =   // Motor steps
-{
-//	UH,UL		VH,VL	WH,WL
-   { 0,0	,	0,0	,	0,0 },  // 0 //000
-   { 0,1	,	0,0	,	1,0 },
-   { 1,0	,	0,1	,	0,0 },
-   { 0,0	,	0,1	,	1,0 },
-   { 0,0	,	1,0	,	0,1 },
-   { 0,1	,	1,0	,	0,0 },
-   { 1,0	,	0,0	,	0,1 },
-   { 0,0	,	0,0	,	0,0 },  // 0 //111
-};
-*/
+
 // BLDC motor steps tables
 static const uint8_t BLDC_BRIDGE_STATE_FORWARD[8][6] =   // Motor steps
 {
@@ -75,20 +61,6 @@ static const uint8_t BLDC_BRIDGE_STATE_BACKWARD[8][6] =   // Motor steps
    { 0,1	,	0,0	,	1,0 },
    { 0,0	,	0,0	,	0,0 },  // 0 //111
 };
-/*
-static const uint8_t BLDC_BRIDGE_STATE_BACKWARD[8][6] =   // Motor steps
-{
-//	UH,UL		VH,VL	WH,WL
-   { 0,0	,	0,0	,	0,0 },  //  //000
-   { 1,0	,	0,0	,	0,1 },
-   { 0,1	,	1,0	,	0,0 },
-   { 0,0	,	1,0	,	0,1 },
-   { 0,0	,	0,1	,	1,0 },
-   { 1,0	,	0,1	,	0,0 },
-   { 0,1	,	0,0	,	1,0 },
-   { 0,0	,	0,0	,	0,0 },  //  //111
-};
-*/
 
 uint16_t getCurrentDrawn(uint16_t adcBuffer2){
 	#ifdef DO_CURRENT_AVGING
