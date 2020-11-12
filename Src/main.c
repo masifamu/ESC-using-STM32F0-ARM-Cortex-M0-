@@ -180,12 +180,11 @@ int main(void)
 			noOfHSCuts=0;
 			msStampS=time;
 		}
-		
+	
 		snprintf(printDataString,100, "PWM=%3d TH=%4d V=%2d %1d:%2d:%2d RPM=%3d C=%5d PC=%8.1f PT=%2d PV=%4d HST=%2d\n\r", pwmWidth,throtle, battVoltage,hour,minute,second,rpm,currentDrawn,powerConsumed,procTemp,procVolt,heatSinkTemp);
 		HAL_UART_Transmit(&huart1, (uint8_t*)printDataString, strlen(printDataString), HAL_MAX_DELAY);
 		#endif
-		
-		
+			
 		//motor control block
     if (throtle > BLDC_ADC_START) {
 			if (BLDC_MotorGetSpin() == BLDC_STOP) {
