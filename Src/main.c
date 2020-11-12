@@ -82,13 +82,14 @@ int main(void)
   /* USER CODE BEGIN 1 */
 	uint16_t pwmWidth=0;
 	uint16_t throtle=0;
-	uint16_t battVoltage=0,currentDrawn=0,powerConsumed=0;
+	uint16_t battVoltage=0,currentDrawn=0;
+	float powerConsumed=0.0f;
 	#ifdef UART_COMM_DEBUG
 	uint8_t hour=0,minute=0,second=0,rpm;
 	uint16_t procTemp=0,heatSinkTemp=0,procVolt=0;
 	uint32_t msStampS=0;
 	#endif
-	uint32_t msStampV=0;
+	uint32_t msStampV=0,timeStampPower=0;
   /* USER CODE END 1 */
   
 
@@ -126,6 +127,7 @@ int main(void)
 	msStampS=time;
 	#endif
 	msStampV=time;
+	timeStampPower = time;
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
@@ -152,6 +154,11 @@ int main(void)
 		//measuring current
 		currentDrawn = getCurrentDrawn(ADCBuffer[2]);
 		
+		//measuring power consumed
+		
+		powerConsumed += ((((float)battVoltage*currentDrawn)*(float)(time-timeStampPower))/3600000.0f);
+		timeStampPower = time;
+		
 		#ifdef UART_COMM_DEBUG
 		//measuring heatSink temperature
 		heatSinkTemp = getHeatSinkTemp(ADCBuffer[3]);
@@ -167,16 +174,14 @@ int main(void)
 		minute = (uint8_t)(((time/1000)/60)%60);
 		second = (uint8_t)((time/1000)%60);
 		
-		//meauring RPM
+		//meauring RPM at every 1sec interval
 		if(time-msStampS >=1000){
 			rpm=(uint16_t)((noOfHSCuts*60)/HSCutsInOneCycle);
 			noOfHSCuts=0;
 			msStampS=time;
-			//measuring power consumed
-			powerConsumed += (uint16_t)((battVoltage*currentDrawn)/3600);
 		}
 		
-		snprintf(printDataString,100, "PWM=%3d TH=%4d V=%2d %1d:%2d:%2d RPM=%3d C=%5d PC=%5d PT=%2d PV=%4d HST=%2d\n\r", pwmWidth,throtle, battVoltage,hour,minute,second,rpm,currentDrawn,powerConsumed,procTemp,procVolt,heatSinkTemp);
+		snprintf(printDataString,100, "PWM=%3d TH=%4d V=%2d %1d:%2d:%2d RPM=%3d C=%5d PC=%8.1f PT=%2d PV=%4d HST=%2d\n\r", pwmWidth,throtle, battVoltage,hour,minute,second,rpm,currentDrawn,powerConsumed,procTemp,procVolt,heatSinkTemp);
 		HAL_UART_Transmit(&huart1, (uint8_t*)printDataString, strlen(printDataString), HAL_MAX_DELAY);
 		#endif
 		

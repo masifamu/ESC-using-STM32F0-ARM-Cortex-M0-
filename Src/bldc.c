@@ -62,6 +62,20 @@ static const uint8_t BLDC_BRIDGE_STATE_FORWARD[8][6] =   // Motor steps
    { 0,0	,	0,0	,	0,0 },  // 0 //111
 };
 
+// BLDC motor backwared steps tables
+static const uint8_t BLDC_BRIDGE_STATE_BACKWARD[8][6] =   // Motor steps
+{
+//	UH,UL		VH,VL	WH,WL
+   { 0,0	,	0,0	,	0,0 },  // 0 //000
+   { 1,0	,	0,0	,	0,1 },
+   { 0,0	,	0,1	,	1,0 },
+   { 1,0	,	0,1	,	0,0 },
+   { 0,1	,	1,0	,	0,0 },
+   { 0,0	,	1,0	,	0,1 },
+   { 0,1	,	0,0	,	1,0 },
+   { 0,0	,	0,0	,	0,0 },  // 0 //111
+};
+/*
 static const uint8_t BLDC_BRIDGE_STATE_BACKWARD[8][6] =   // Motor steps
 {
 //	UH,UL		VH,VL	WH,WL
@@ -74,6 +88,7 @@ static const uint8_t BLDC_BRIDGE_STATE_BACKWARD[8][6] =   // Motor steps
    { 0,1	,	0,0	,	1,0 },
    { 0,0	,	0,0	,	0,0 },  //  //111
 };
+*/
 
 uint16_t getCurrentDrawn(uint16_t adcBuffer2){
 	#ifdef DO_CURRENT_AVGING
@@ -143,7 +158,7 @@ uint16_t getProcTemp(uint16_t adcBuffer4){
 
 void toggleGreenLED(void){
 	static uint16_t counter=0;
-	if(++counter > 100){
+	if(++counter > 32){
 		counter=0;
 		HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_4);
 	}
