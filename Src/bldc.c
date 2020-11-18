@@ -62,6 +62,7 @@ static const uint8_t BLDC_BRIDGE_STATE_BACKWARD[8][6] =   // Motor steps
    { 0,0	,	0,0	,	0,0 },  // 0 //111
 };
 
+#ifdef MEASURE_POWER
 uint16_t getCurrentDrawn(uint16_t adcBuffer2){
 	#ifdef DO_CURRENT_AVGING
 	static uint32_t avg2=0;
@@ -84,6 +85,7 @@ uint16_t getCurrentDrawn(uint16_t adcBuffer2){
 	#endif
 	return current;
 }
+#endif
 
 #ifdef UART_COMM_DEBUG
 uint16_t getHeatSinkTemp(uint16_t adcBuffer3){

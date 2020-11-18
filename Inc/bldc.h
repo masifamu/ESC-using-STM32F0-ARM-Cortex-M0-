@@ -4,7 +4,7 @@
 #include "stdint.h"
 // PWM Frequency = 72000000/BLDC_CHOPPER_PERIOD
 #define BLDC_CHOPPER_PERIOD 480
-#define BLDC_SPEEDING_FACTOR 0.5
+#define BLDC_SPEEDING_FACTOR 0.8
 // Dead time = BLDC_NOL/72000000  (on 72MHz: 7 is 98ns)
 // (on 72MHz: 72 is 1000ns)
 //#define BLDC_NOL 72
@@ -15,9 +15,9 @@
 //#define BLDC_PWMTOPBOTTOMKEYS
 //#define BLDC_PWMCOMPLEMENTARYMODE
 
-#define UART_COMM_DEBUG
+//#define UART_COMM_DEBUG
 //#define UART_HALL_DEBUG
-
+//#define MEASURE_POWER
 
 /* when working with variable resistor
 #define BLDC_ADC_START 15
@@ -33,13 +33,16 @@
 #define BLDC_CW		1
 #define BLDC_CCW	2
 
+#ifdef MEASURE_POWER
 //motor parameter macros
 #define minBattThreVolt           36
 #define maxBattThreVolt           56
 #define waitAftLowVoltDet         5000//in msec
+#endif
 #define wheelDia                  0.65
 #define HSCutsInOneCycle          266
 
+#ifdef UART_COMM_DEBUG
 //thermistor parameter
 #define R1										100710//100k
 #define coeffA                0.003354016f
@@ -53,7 +56,7 @@
 #define Rup											2.176f
 #define sensitivity							66			//66mv/A
 //#define DO_CURRENT_AVGING
-
+#endif
 
 #define UH	0
 #define UL	1
@@ -75,9 +78,13 @@ uint16_t BLDC_ADCToPWM(uint16_t ADC_VALUE);
 void BLDC_SetPWM(uint16_t PWM);
 void usart_init(void);
 void USARTSend(char *);
+#ifdef UART_COMM_DEBUG
 uint16_t getHeatSinkTemp(uint16_t adcBuffer3);
 uint16_t getProcVoltage(uint16_t adcBuffer5);
 uint16_t getProcTemp(uint16_t adcBuffer4);
+#endif
+#ifdef MEASURE_POWER
 uint16_t getCurrentDrawn(uint16_t adcBuffer2);
+#endif
 void toggleGreenLED(void);
 #endif

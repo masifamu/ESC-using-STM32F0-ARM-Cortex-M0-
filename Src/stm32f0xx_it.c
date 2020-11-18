@@ -44,7 +44,6 @@
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN PV */
 uint32_t time;
-extern enum States elapsed1Sec;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/

@@ -82,14 +82,18 @@ int main(void)
   /* USER CODE BEGIN 1 */
 	uint16_t pwmWidth=0;
 	uint16_t throtle=0;
+#ifdef MEASURE_POWER
 	uint16_t battVoltage=0,currentDrawn=0;
 	float powerConsumed=0.0f;
-	#ifdef UART_COMM_DEBUG
+#endif
+#ifdef UART_COMM_DEBUG
 	uint8_t hour=0,minute=0,second=0,rpm;
 	uint16_t procTemp=0,heatSinkTemp=0,procVolt=0;
 	uint32_t msStampS=0;
-	#endif
+#endif
+#ifdef MEASURE_POWER
 	uint32_t msStampV=0,timeStampPower=0;
+#endif
   /* USER CODE END 1 */
   
 
@@ -123,11 +127,13 @@ int main(void)
   /* USER CODE END 2 */
 	HAL_GPIO_WritePin(GPIOA,GPIO_PIN_12,GPIO_PIN_SET);
 	
-	#ifdef UART_COMM_DEBUG
+#ifdef UART_COMM_DEBUG
 	msStampS=time;
-	#endif
+#endif
+#ifdef MEASURE_POWER
 	msStampV=time;
 	timeStampPower = time;
+#endif
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
@@ -136,7 +142,7 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
 		throtle=ADCBuffer[0];
-
+#ifdef MEASURE_POWER
 		//measuring battery voltage
 		//anding is to avoid the error due to two lower bits. 3.3*(15.6+1)*1000=54780, shifting right by 12bit = div by 4096
 		battVoltage = (uint16_t)(((uint32_t)ADCBuffer[1] * 54780)>>12)/1000 ;
@@ -158,8 +164,8 @@ int main(void)
 		
 		powerConsumed += ((((float)battVoltage*currentDrawn)*(float)(time-timeStampPower))/3600000.0f);
 		timeStampPower = time;
-		
-		#ifdef UART_COMM_DEBUG
+#endif
+#ifdef UART_COMM_DEBUG
 		//measuring heatSink temperature
 		heatSinkTemp = getHeatSinkTemp(ADCBuffer[3]);
 		
@@ -183,8 +189,8 @@ int main(void)
 	
 		snprintf(printDataString,100, "PWM=%3d TH=%4d V=%2d %1d:%2d:%2d RPM=%3d C=%5d PC=%8.1f PT=%2d PV=%4d HST=%2d\n\r", pwmWidth,throtle, battVoltage,hour,minute,second,rpm,currentDrawn,powerConsumed,procTemp,procVolt,heatSinkTemp);
 		HAL_UART_Transmit(&huart1, (uint8_t*)printDataString, strlen(printDataString), HAL_MAX_DELAY);
-		#endif
-			
+#endif
+		HAL_Delay(150);//to avoid the sound problem//check why?
 		//motor control block
     if (throtle > BLDC_ADC_START) {
 			if (BLDC_MotorGetSpin() == BLDC_STOP) {
