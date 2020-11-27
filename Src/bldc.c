@@ -25,6 +25,8 @@ char printDataString1[50] = "buffer here\r\n";
 uint8_t BLDC_MotorSpin = 0,toUpdate=0;
 uint8_t BLDC_STATE[6] = {0,0,0,0,0,0};
 uint16_t PWMWIDTH=0;
+extern uint32_t time;
+extern uint32_t localTime;
 
 #ifdef UART_COMM_DEBUG
 uint16_t noOfHSCuts=0;
@@ -130,16 +132,30 @@ uint16_t getProcTemp(uint16_t adcBuffer4){
 }
 #endif
 
+uint8_t isThrotleProperlyConnected(uint32_t timeValue, uint16_t throtleValue){
+	//monitor the delta in throtle here so that if it is disconnected somehow, engine can be shut-down
+	
+	//checking that after power on withing 1sec if the throtle is more that 3000, meaning that the throtle
+	//is not properly connected
+	if(timeValue <= 1000 && throtleValue >= 3000){
+		//throtle is not properly connected
+		return 0;//return false here
+	}else{
+		//throtle is properly connected.
+		return 1;//return true here
+	}
+}
+
 void toggleGreenLED(void){
 	static uint16_t counter=0;
-	if(++counter > 32){
+	if(++counter > 1024){
 		counter=0;
 		HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_4);
 	}
 }
 
 void BLDC_Init(void) {
-	BLDC_MotorStart();
+	BLDC_MotorResetInverter();
 }
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_pin) {
@@ -170,7 +186,7 @@ void BLDC_MotorStop(void)
 	BLDC_SetPWM(1);
 }
 
-void BLDC_MotorStart(void)
+void BLDC_MotorResetInverter(void)
 {
 		BLDC_SetPWM(0);
 	
@@ -219,8 +235,9 @@ void BLDC_MotorCommutation(uint16_t hallpos)
 #endif
 
 #ifdef BLDC_PWMTOPKEYS
-void BLDC_MotorCommutation(uint16_t hallpos)
-{
+void BLDC_MotorCommutation(uint16_t hallpos){
+	localTime=time;
+	
 	if (BLDC_MotorSpin == BLDC_CW) {
 		memcpy(BLDC_STATE, BLDC_BRIDGE_STATE_FORWARD[hallpos], sizeof(BLDC_STATE));
 	}
@@ -238,22 +255,25 @@ void BLDC_MotorCommutation(uint16_t hallpos)
 
 	// Enable if need. If previous state is Enabled then not enable again. Else output do flip-flop.
 	if (BLDC_STATE[UH] & !BLDC_STATE[UL] & !BLDC_STATE_PREV[UH]) {
-		TIM1CH3(PWMWIDTH); 
-		toUpdate=CH3;
+		//TIM1CH3(PWMWIDTH);
+		//toUpdate=CH3; 
+		BLDC_UpdatePWMWidth(CH3);
 	}
 	if (BLDC_STATE[UL] & !BLDC_STATE[UH] & !BLDC_STATE_PREV[UL]) {
 		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_RESET);
 	}
 	if (BLDC_STATE[VH] & !BLDC_STATE[VL] & !BLDC_STATE_PREV[VH]) {
-		TIM1CH2(PWMWIDTH); 
-		toUpdate=CH2;
+		//TIM1CH2(PWMWIDTH); 
+		//toUpdate=CH2;
+		BLDC_UpdatePWMWidth(CH2);
 	}
 	if (BLDC_STATE[VL] & !BLDC_STATE[VH] & !BLDC_STATE_PREV[VL]) {
 		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, GPIO_PIN_RESET);
 	}
 	if (BLDC_STATE[WH] & !BLDC_STATE[WL] & !BLDC_STATE_PREV[WH]) {
-		TIM1CH1(PWMWIDTH); 
-		toUpdate=CH1;
+		//TIM1CH1(PWMWIDTH); 
+		//toUpdate=CH1;
+		BLDC_UpdatePWMWidth(CH1);
 	}
 	if (BLDC_STATE[WL] & !BLDC_STATE[WH] & !BLDC_STATE_PREV[WL]) {
 		HAL_GPIO_WritePin(GPIOA, GPIO_PIN_7, GPIO_PIN_RESET);
@@ -402,15 +422,19 @@ uint16_t BLDC_ADCToPWM(uint16_t ADC_VALUE) {
 void BLDC_SetPWM(uint16_t PWM)
 {
 	PWMWIDTH=PWM;
-	if(toUpdate == CH1){
-		TIM1CH1(PWMWIDTH);
-	}else if(toUpdate == CH2){
-		TIM1CH2(PWMWIDTH);
-	}else if(toUpdate == CH3){
-		TIM1CH3(PWMWIDTH);
-	}
 	#ifdef UART_HALL_DEBUG
   snprintf(printDataString1,50, "PWMWIDTH = %d\n\r", (uint16_t)PWMWIDTH);
   HAL_UART_Transmit(&huart1, (uint8_t*)printDataString1, strlen(printDataString1), HAL_MAX_DELAY);
 	#endif
 }
+
+void BLDC_UpdatePWMWidth(uint8_t update){
+	if(update == CH1){
+		TIM1CH1(PWMWIDTH);
+	}else if(update == CH2){
+		TIM1CH2(PWMWIDTH);
+	}else if(update == CH3){
+		TIM1CH3(PWMWIDTH);
+	}
+}
+

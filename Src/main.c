@@ -57,6 +57,7 @@ char printDataString[100] = "buffer here\r\n";//{'\0',};
 
 uint16_t ADCBuffer[6]={0,};
 extern uint32_t time;
+uint32_t localTime=0;
 #ifdef UART_COMM_DEBUG
 extern uint16_t noOfHSCuts;
 #endif
@@ -142,6 +143,13 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
 		throtle=ADCBuffer[0];
+		//Checking for throttle accident management
+		if(!isThrotleProperlyConnected(time,throtle)){
+			while(1){
+				HAL_GPIO_TogglePin(GPIOB,GPIO_PIN_4);
+				HAL_Delay(200);
+			}
+		}
 #ifdef MEASURE_POWER
 		//measuring battery voltage
 		//anding is to avoid the error due to two lower bits. 3.3*(15.6+1)*1000=54780, shifting right by 12bit = div by 4096
@@ -190,7 +198,7 @@ int main(void)
 		snprintf(printDataString,100, "PWM=%3d TH=%4d V=%2d %1d:%2d:%2d RPM=%3d C=%5d PC=%8.1f PT=%2d PV=%4d HST=%2d\n\r", pwmWidth,throtle, battVoltage,hour,minute,second,rpm,currentDrawn,powerConsumed,procTemp,procVolt,heatSinkTemp);
 		HAL_UART_Transmit(&huart1, (uint8_t*)printDataString, strlen(printDataString), HAL_MAX_DELAY);
 #endif
-		HAL_Delay(150);//to avoid the sound problem//check why?
+		//HAL_Delay(150);//to avoid the sound problem//check why?
 		//motor control block
     if (throtle > BLDC_ADC_START) {
 			if (BLDC_MotorGetSpin() == BLDC_STOP) {
@@ -202,10 +210,12 @@ int main(void)
 					// Backward
 					BLDC_MotorSetSpin(BLDC_CCW);
 				}
+				pwmWidth=BLDC_ADCToPWM(throtle);
+				BLDC_SetPWM(pwmWidth);
 				BLDC_MotorCommutation(BLDC_HallSensorsGetPosition());
 			}
-    	pwmWidth=BLDC_ADCToPWM(throtle);
 			HAL_GPIO_WritePin(GPIOB,GPIO_PIN_4,GPIO_PIN_SET);
+    	pwmWidth=BLDC_ADCToPWM(throtle);
 			BLDC_SetPWM(pwmWidth);
     }else{
 			//HAL_GPIO_WritePin(GPIOB,GPIO_PIN_4, GPIO_PIN_RESET);
@@ -213,10 +223,14 @@ int main(void)
 				//meaning motor is still running
 				if (throtle < BLDC_ADC_STOP) {
 					BLDC_MotorStop();
-					toggleGreenLED();
+					if(time-localTime > 1000){
+						BLDC_MotorSetSpin(BLDC_STOP);//manage it
+						BLDC_MotorResetInverter();
+					}
 					//HAL_Delay(250);//this delay may cause timing accuracy out side of motor control block.
 				}
 			}
+			toggleGreenLED();
     }
    }
   /* USER CODE END 3 */

@@ -72,7 +72,6 @@ uint8_t BLDC_HallSensorsGetPosition(void);
 void BLDC_MotorSetSpin(uint8_t spin);
 uint8_t BLDC_MotorGetSpin(void);
 void BLDC_MotorStop(void);
-void BLDC_MotorStart(void);
 void BLDC_MotorCommutation(uint16_t hallpos);
 uint16_t BLDC_ADCToPWM(uint16_t ADC_VALUE);
 void BLDC_SetPWM(uint16_t PWM);
@@ -87,4 +86,7 @@ uint16_t getProcTemp(uint16_t adcBuffer4);
 uint16_t getCurrentDrawn(uint16_t adcBuffer2);
 #endif
 void toggleGreenLED(void);
+uint8_t isThrotleProperlyConnected(uint32_t timeValue, uint16_t throtleValue);
+void BLDC_UpdatePWMWidth(uint8_t update);
+void BLDC_MotorResetInverter(void);
 #endif
