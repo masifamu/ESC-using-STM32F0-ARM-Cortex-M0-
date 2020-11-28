@@ -22,7 +22,7 @@
 char printDataString1[50] = "buffer here\r\n";
 #endif
 
-uint8_t BLDC_MotorSpin = 0,toUpdate=0;
+uint8_t BLDC_MotorSpin = 0,toUpdate=0,stoppingDirection=0;
 uint8_t BLDC_STATE[6] = {0,0,0,0,0,0};
 uint16_t PWMWIDTH=0;
 extern uint32_t time;
@@ -181,6 +181,11 @@ void BLDC_MotorSetSpin(uint8_t spin) {
 	BLDC_MotorSpin = spin;
 }
 
+void BLDC_MotorSetStopDirection(uint8_t stoppingSpin){
+	stoppingDirection = stoppingSpin;//forward
+}
+
+
 void BLDC_MotorStop(void)
 {
 	BLDC_SetPWM(1);
@@ -238,10 +243,10 @@ void BLDC_MotorCommutation(uint16_t hallpos)
 void BLDC_MotorCommutation(uint16_t hallpos){
 	localTime=time;
 	
-	if (BLDC_MotorSpin == BLDC_CW) {
+	if ((BLDC_MotorSpin == BLDC_CW || BLDC_MotorSpin == BLDC_STOP) && stoppingDirection == BLDC_CW) {
 		memcpy(BLDC_STATE, BLDC_BRIDGE_STATE_FORWARD[hallpos], sizeof(BLDC_STATE));
 	}
-	else {
+	else if((BLDC_MotorSpin == BLDC_CCW || BLDC_MotorSpin == BLDC_STOP) && stoppingDirection == BLDC_CCW){
 		memcpy(BLDC_STATE, BLDC_BRIDGE_STATE_BACKWARD[hallpos], sizeof(BLDC_STATE));
 	}
 
@@ -256,7 +261,7 @@ void BLDC_MotorCommutation(uint16_t hallpos){
 	// Enable if need. If previous state is Enabled then not enable again. Else output do flip-flop.
 	if (BLDC_STATE[UH] & !BLDC_STATE[UL] & !BLDC_STATE_PREV[UH]) {
 		//TIM1CH3(PWMWIDTH);
-		//toUpdate=CH3; 
+		toUpdate=CH3; 
 		BLDC_UpdatePWMWidth(CH3);
 	}
 	if (BLDC_STATE[UL] & !BLDC_STATE[UH] & !BLDC_STATE_PREV[UL]) {
@@ -264,7 +269,7 @@ void BLDC_MotorCommutation(uint16_t hallpos){
 	}
 	if (BLDC_STATE[VH] & !BLDC_STATE[VL] & !BLDC_STATE_PREV[VH]) {
 		//TIM1CH2(PWMWIDTH); 
-		//toUpdate=CH2;
+		toUpdate=CH2;
 		BLDC_UpdatePWMWidth(CH2);
 	}
 	if (BLDC_STATE[VL] & !BLDC_STATE[VH] & !BLDC_STATE_PREV[VL]) {
@@ -272,7 +277,7 @@ void BLDC_MotorCommutation(uint16_t hallpos){
 	}
 	if (BLDC_STATE[WH] & !BLDC_STATE[WL] & !BLDC_STATE_PREV[WH]) {
 		//TIM1CH1(PWMWIDTH); 
-		//toUpdate=CH1;
+		toUpdate=CH1;
 		BLDC_UpdatePWMWidth(CH1);
 	}
 	if (BLDC_STATE[WL] & !BLDC_STATE[WH] & !BLDC_STATE_PREV[WL]) {

@@ -89,4 +89,5 @@ void toggleGreenLED(void);
 uint8_t isThrotleProperlyConnected(uint32_t timeValue, uint16_t throtleValue);
 void BLDC_UpdatePWMWidth(uint8_t update);
 void BLDC_MotorResetInverter(void);
+void BLDC_MotorSetStopDirection(uint8_t stoppingSpin);
 #endif

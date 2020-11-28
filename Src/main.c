@@ -57,6 +57,7 @@ char printDataString[100] = "buffer here\r\n";//{'\0',};
 
 uint16_t ADCBuffer[6]={0,};
 extern uint32_t time;
+extern uint8_t toUpdate;
 uint32_t localTime=0;
 #ifdef UART_COMM_DEBUG
 extern uint16_t noOfHSCuts;
@@ -206,14 +207,18 @@ int main(void)
 				if (HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_15) != 0) {
 					// Forward
 					BLDC_MotorSetSpin(BLDC_CW);
+					BLDC_MotorSetStopDirection(BLDC_CW);
 				}else{
 					// Backward
 					BLDC_MotorSetSpin(BLDC_CCW);
+					BLDC_MotorSetStopDirection(BLDC_CCW);
 				}
 				pwmWidth=BLDC_ADCToPWM(throtle);
 				BLDC_SetPWM(pwmWidth);
 				BLDC_MotorCommutation(BLDC_HallSensorsGetPosition());
+				BLDC_UpdatePWMWidth(toUpdate);
 			}
+			
 			HAL_GPIO_WritePin(GPIOB,GPIO_PIN_4,GPIO_PIN_SET);
     	pwmWidth=BLDC_ADCToPWM(throtle);
 			BLDC_SetPWM(pwmWidth);
@@ -223,10 +228,10 @@ int main(void)
 				//meaning motor is still running
 				if (throtle < BLDC_ADC_STOP) {
 					BLDC_MotorStop();
-					if(time-localTime > 1000){
+					//if(time-localTime > 1000){
 						BLDC_MotorSetSpin(BLDC_STOP);//manage it
-						BLDC_MotorResetInverter();
-					}
+						//BLDC_MotorResetInverter();
+					//}
 					//HAL_Delay(250);//this delay may cause timing accuracy out side of motor control block.
 				}
 			}
