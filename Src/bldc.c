@@ -188,7 +188,7 @@ void BLDC_MotorSetStopDirection(uint8_t stoppingSpin){
 
 void BLDC_MotorStop(void)
 {
-	BLDC_SetPWM(1);
+	BLDC_SetPWM(0);
 }
 
 void BLDC_MotorResetInverter(void)
@@ -241,6 +241,7 @@ void BLDC_MotorCommutation(uint16_t hallpos)
 
 #ifdef BLDC_PWMTOPKEYS
 void BLDC_MotorCommutation(uint16_t hallpos){
+	
 	localTime=time;
 	
 	if ((BLDC_MotorSpin == BLDC_CW || BLDC_MotorSpin == BLDC_STOP) && stoppingDirection == BLDC_CW) {
@@ -261,7 +262,7 @@ void BLDC_MotorCommutation(uint16_t hallpos){
 	// Enable if need. If previous state is Enabled then not enable again. Else output do flip-flop.
 	if (BLDC_STATE[UH] & !BLDC_STATE[UL] & !BLDC_STATE_PREV[UH]) {
 		//TIM1CH3(PWMWIDTH);
-		toUpdate=CH3; 
+		toUpdate=CH3;
 		BLDC_UpdatePWMWidth(CH3);
 	}
 	if (BLDC_STATE[UL] & !BLDC_STATE[UH] & !BLDC_STATE_PREV[UL]) {
@@ -420,7 +421,7 @@ uint16_t BLDC_ADCToPWM(uint16_t ADC_VALUE) {
 	tmp = (uint32_t)(ADC_VALUE-BLDC_ADC_STOP) * (uint32_t)(BLDC_CHOPPER_PERIOD * BLDC_SPEEDING_FACTOR) / (uint32_t)(BLDC_ADC_MAX - BLDC_ADC_START);
 
 	//to maintain the lower PWM width
-	return (uint16_t) tmp-3;
+	return (uint16_t) tmp;
 
 }
 

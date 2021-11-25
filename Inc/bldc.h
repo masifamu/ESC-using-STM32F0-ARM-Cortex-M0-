@@ -27,7 +27,7 @@
 //when working with throtle
 #define BLDC_ADC_START 1150
 #define BLDC_ADC_STOP 1090
-#define BLDC_ADC_MAX 4000
+#define BLDC_ADC_MAX 4000 //old value
 /////////////////////////////////////////////////////////////////////////
 #define BLDC_STOP	0
 #define BLDC_CW		1

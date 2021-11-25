@@ -84,6 +84,7 @@ int main(void)
   /* USER CODE BEGIN 1 */
 	uint16_t pwmWidth=0;
 	uint16_t throtle=0;
+	float filterPWMWidth=0.0f;
 #ifdef MEASURE_POWER
 	uint16_t battVoltage=0,currentDrawn=0;
 	float powerConsumed=0.0f;
@@ -213,26 +214,31 @@ int main(void)
 					BLDC_MotorSetSpin(BLDC_CCW);
 					BLDC_MotorSetStopDirection(BLDC_CCW);
 				}
-				pwmWidth=BLDC_ADCToPWM(throtle);
+				pwmWidth=8;//BLDC_ADCToPWM(throtle);
 				BLDC_SetPWM(pwmWidth);
 				BLDC_MotorCommutation(BLDC_HallSensorsGetPosition());
 				BLDC_UpdatePWMWidth(toUpdate);
+				for(int i=0;i<10;i++){
+					pwmWidth += 1;
+					BLDC_SetPWM(pwmWidth);
+					HAL_Delay(10);
+				}
+				//HAL_Delay(1000);
+				filterPWMWidth=pwmWidth;//to maintain smooth transition in pwmwidth value
 			}
 			
 			HAL_GPIO_WritePin(GPIOB,GPIO_PIN_4,GPIO_PIN_SET);
+			if(filterPWMWidth < pwmWidth) filterPWMWidth += 0.05f; else filterPWMWidth -= 0.05f;
     	pwmWidth=BLDC_ADCToPWM(throtle);
-			BLDC_SetPWM(pwmWidth);
+			BLDC_SetPWM((uint16_t)filterPWMWidth);
     }else{
-			//HAL_GPIO_WritePin(GPIOB,GPIO_PIN_4, GPIO_PIN_RESET);
 			if (BLDC_MotorGetSpin() != BLDC_STOP) {
 				//meaning motor is still running
 				if (throtle < BLDC_ADC_STOP) {
 					BLDC_MotorStop();
-					//if(time-localTime > 1000){
-						BLDC_MotorSetSpin(BLDC_STOP);//manage it
-						//BLDC_MotorResetInverter();
-					//}
-					//HAL_Delay(250);//this delay may cause timing accuracy out side of motor control block.
+					pwmWidth = 0;
+					filterPWMWidth = 0.0f;
+					BLDC_MotorSetSpin(BLDC_STOP);
 				}
 			}
 			toggleGreenLED();
